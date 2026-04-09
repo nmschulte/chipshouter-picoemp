@@ -9,10 +9,19 @@
 
 #include "trigger_basic.pio.h"
 
-static bool armed = false;
+typedef enum armed_state {
+    DISARMED = 0,
+    ARMED = 1,
+    REARMED = 2,
+} armed_state_t;
+
+#define BTN_DEBOUNCE_TIME_MS 50
+
+static armed_state_t armed = DISARMED;
 static bool timeout_active = true;
 static bool hvp_internal = true;
 static absolute_time_t timeout_time;
+static absolute_time_t arm_debounce_time = 0;
 static uint offset = 0xFFFFFFFF;
 
 // defaults taken from original code
@@ -27,18 +36,22 @@ static union float_union {float f; uint32_t ui32;} pulse_power;
 
 void arm() {
     gpio_put(PIN_LED_CHARGE_ON, true);
-    armed = true;
+    if(armed == ARMED) {
+        armed = REARMED;
+    } else {
+        armed = ARMED;
+    }
 }
 
 void disarm() {
     gpio_put(PIN_LED_CHARGE_ON, false);
-    armed = false;
+    armed = DISARMED;
     picoemp_disable_pwm();
 }
 
 uint32_t get_status() {
     uint32_t result = 0;
-    if(armed) {
+    if(armed != DISARMED) {
         result |= 0b1;
     }
     if(gpio_get(PIN_IN_CHARGED)) {
@@ -180,23 +193,30 @@ int main() {
             // YOLO debouncing by picoemp_pulse forced 250ms recovery
         }
 
+        // Arming
         if(gpio_get(PIN_BTN_ARM)) {
             update_timeout();
-            if(!armed) {
-                arm();
-            } else {
-                disarm();
+            if(!arm_debounce_time) {
+                arm_debounce_time = make_timeout_time_ms(BTN_DEBOUNCE_TIME_MS);
+                (armed != DISARMED ? disarm : arm)();
+            } else if(arm_debounce_time > get_absolute_time()) {
+                arm_debounce_time = make_timeout_time_ms(BTN_DEBOUNCE_TIME_MS);
             }
-            // YOLO debouncing
-            while(gpio_get(PIN_BTN_ARM));
-            sleep_ms(100);
         }
 
-        if(!gpio_get(PIN_IN_CHARGED) && armed) {
+        if (arm_debounce_time && arm_debounce_time < get_absolute_time()) {
+            arm_debounce_time = 0;
+        }
+
+        if(armed == ARMED && !gpio_get(PIN_IN_CHARGED)) {
             picoemp_enable_pwm(pulse_power.f);
+        } else if(armed == REARMED) {
+            picoemp_disable_pwm();
+            picoemp_enable_pwm(pulse_power.f);
+            armed = ARMED;
         }
 
-        if(timeout_active && (get_absolute_time() > timeout_time) && armed) {
+        if(armed != DISARMED && timeout_active && (get_absolute_time() > timeout_time)) {
             disarm();
         }
     }
