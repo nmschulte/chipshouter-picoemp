@@ -19,11 +19,11 @@ static uint offset = 0xFFFFFFFF;
 #define PULSE_DELAY_CYCLES_DEFAULT 0
 #define PULSE_TIME_CYCLES_DEFAULT 625 // 5us in 8ns cycles
 #define PULSE_TIME_US_DEFAULT 5 // 5us
-#define PULSE_POWER_DEFAULT 0.0122
+#define CHARGE_DUTY_DEFAULT 0.0122
 static uint32_t pulse_time;
 static uint32_t pulse_delay_cycles;
 static uint32_t pulse_time_cycles;
-static union float_union {float f; uint32_t ui32;} pulse_power;
+static union float_union {float f; uint32_t ui32;} charge_duty;
 
 void arm() {
     gpio_put(PIN_LED_CHARGE_ON, true);
@@ -94,7 +94,7 @@ int main() {
     multicore_launch_core1(serial_console);
 
     pulse_time = PULSE_TIME_US_DEFAULT;
-    pulse_power.f = PULSE_POWER_DEFAULT;
+    charge_duty.f = CHARGE_DUTY_DEFAULT;
     pulse_delay_cycles = PULSE_DELAY_CYCLES_DEFAULT;
     pulse_time_cycles = PULSE_TIME_CYCLES_DEFAULT;
 
@@ -162,8 +162,8 @@ int main() {
                     pulse_time = multicore_fifo_pop_blocking();
                     multicore_fifo_push_blocking(return_ok);
                     break;
-                case cmd_config_pulse_power:
-                    pulse_power.ui32 = multicore_fifo_pop_blocking();
+                case cmd_config_charge_duty:
+                    charge_duty.ui32 = multicore_fifo_pop_blocking();
                     multicore_fifo_push_blocking(return_ok);
                     break;
                 case cmd_toggle_gp1:
@@ -192,7 +192,7 @@ int main() {
         }
 
         if(!gpio_get(PIN_IN_CHARGED) && armed) {
-            picoemp_enable_pwm(pulse_power.f);
+            picoemp_enable_pwm(charge_duty.f);
         }
 
         if(timeout_active && (get_absolute_time() > timeout_time) && armed) {
