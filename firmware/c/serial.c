@@ -153,7 +153,7 @@ bool handle_command(char *command) {
             multicore_fifo_pop_blocking();
             printf("Triggered!\n");
         } else {
-            printf("Setting up fast trigger failed.");
+            printf("Setting up fast trigger failed.\n");
         }
         return true;
     }
@@ -185,14 +185,14 @@ bool handle_command(char *command) {
         multicore_fifo_push_blocking(pulse_delay_cycles);
         uint32_t result = multicore_fifo_pop_blocking();
         if(result != return_ok) {
-            printf("Config pulse_delay_cycles failed.");
+            printf("Config pulse_delay_cycles failed.\n");
         }
 
         multicore_fifo_push_blocking(cmd_config_pulse_time_cycles);
         multicore_fifo_push_blocking(pulse_time_cycles);
         result = multicore_fifo_pop_blocking();
         if(result != return_ok) {
-            printf("Config pulse_time_cycles failed.");
+            printf("Config pulse_time_cycles failed.\n");
         }
 
         printf("pulse_delay_cycles=%d, pulse_time_cycles=%d\n", pulse_delay_cycles, pulse_time_cycles);
@@ -205,7 +205,7 @@ bool handle_command(char *command) {
         if(result == return_ok) {
             printf("Internal HVP mode active!\n");
         } else {
-            printf("Setting up internal HVP mode failed.");
+            printf("Setting up internal HVP mode failed.\n");
         }
         return true;
     }
@@ -215,7 +215,7 @@ bool handle_command(char *command) {
         if(result == return_ok) {
             printf("External HVP mode active!\n");
         } else {
-            printf("Setting up external HVP mode failed.");
+            printf("Setting up external HVP mode failed.\n");
         }
         return true;
     }
@@ -234,7 +234,7 @@ bool handle_command(char *command) {
         read_line();
         printf("\n");
         if (serial_buffer[0] == 0)
-            printf("Using default");
+            printf("Using default\n");
         else
             pulse_power.f = strtof(serial_buffer, unused);
 
@@ -242,14 +242,14 @@ bool handle_command(char *command) {
         multicore_fifo_push_blocking(pulse_time);
         uint32_t result = multicore_fifo_pop_blocking();
         if(result != return_ok) {
-            printf("Config pulse_time failed.");
+            printf("Config pulse_time failed.\n");
         }
 
         multicore_fifo_push_blocking(cmd_config_pulse_power);
         multicore_fifo_push_blocking(pulse_power.ui32);
         result = multicore_fifo_pop_blocking();
         if(result != return_ok) {
-            printf("Config pulse_power failed.");
+            printf("Config pulse_power failed.\n");
         }
 
         printf("pulse_time=%d, pulse_power=%f\n", pulse_time, pulse_power.f);
@@ -262,7 +262,7 @@ bool handle_command(char *command) {
 
         uint32_t result = multicore_fifo_pop_blocking();
         if(result != return_ok) {
-            printf("target_reset failed.");
+            printf("target_reset failed.\n");
         }
 
         return true;
