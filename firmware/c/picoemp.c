@@ -73,6 +73,7 @@ void picoemp_pulse(uint32_t pulse_time) {
     gpio_put(PIN_OUT_HVPULSE, true);
     sleep_us(pulse_time);
     gpio_put(PIN_OUT_HVPULSE, false);
+    // force 250ms recovery time
     sleep_ms(250);
 }
 

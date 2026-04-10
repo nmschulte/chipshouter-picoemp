@@ -177,6 +177,7 @@ int main() {
         if(gpio_get(PIN_BTN_PULSE)) {
             update_timeout();
             picoemp_pulse(pulse_time);
+            // YOLO debouncing by picoemp_pulse forced 250ms recovery
         }
 
         if(gpio_get(PIN_BTN_ARM)) {
