@@ -172,7 +172,7 @@ bool handle_command(char *command) {
             printf("Using default\n");
         else
             pulse_delay_cycles = strtoul(serial_buffer, unused, 10);
-        
+
         printf(" pulse_time_cycles (current: %d, default: %d)?\n> ", pulse_time_cycles, PULSE_TIME_CYCLES_DEFAULT);
         read_line();
         printf("\n");
@@ -259,7 +259,7 @@ bool handle_command(char *command) {
 
     if(strcmp(command, "t") == 0 || strcmp(command, "toggle_gp1") == 0) {
         multicore_fifo_push_blocking(cmd_toggle_gp1);
-        
+
         uint32_t result = multicore_fifo_pop_blocking();
         if(result != return_ok) {
             printf("target_reset failed.");
@@ -285,7 +285,7 @@ void serial_console() {
     pulse_power.f = PULSE_POWER_DEFAULT;
     pulse_delay_cycles = PULSE_DELAY_CYCLES_DEFAULT;
     pulse_time_cycles = PULSE_TIME_CYCLES_DEFAULT;
-    
+
     while(1) {
         read_line();
         printf("\n");
@@ -308,7 +308,7 @@ void serial_console() {
             printf("- [r]eset\n");
         }
         printf("\n");
-        
+
         if (last_command[0] != 0) {
             printf("[%s] > ", last_command);
         } else {
