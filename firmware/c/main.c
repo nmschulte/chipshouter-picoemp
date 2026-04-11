@@ -20,6 +20,8 @@ static uint offset = 0xFFFFFFFF;
 #define PULSE_TIME_CYCLES_DEFAULT 625 // 5us in 8ns cycles
 #define PULSE_TIME_US_DEFAULT 5 // 5us
 #define PULSE_POWER_DEFAULT 0.0122
+#define CHARGE_FREQ_DEFAULT 2500 // 2.5 kHz
+static uint32_t charge_freq;
 static uint32_t pulse_time;
 static uint32_t pulse_delay_cycles;
 static uint32_t pulse_time_cycles;
@@ -93,6 +95,7 @@ int main() {
     // Run serial-console on second core
     multicore_launch_core1(serial_console);
 
+    charge_freq = CHARGE_FREQ_DEFAULT;
     pulse_time = PULSE_TIME_US_DEFAULT;
     pulse_power.f = PULSE_POWER_DEFAULT;
     pulse_delay_cycles = PULSE_DELAY_CYCLES_DEFAULT;
@@ -158,6 +161,10 @@ int main() {
                     hvp_internal = false;
                     multicore_fifo_push_blocking(return_ok);
                     break;
+                case cmd_config_charge_freq:
+                    charge_freq = multicore_fifo_pop_blocking();
+                    multicore_fifo_push_blocking(return_ok);
+                    break;
                 case cmd_config_pulse_time:
                     pulse_time = multicore_fifo_pop_blocking();
                     multicore_fifo_push_blocking(return_ok);
@@ -192,7 +199,7 @@ int main() {
         }
 
         if(!gpio_get(PIN_IN_CHARGED) && armed) {
-            picoemp_enable_pwm(pulse_power.f);
+            picoemp_enable_pwm(pulse_power.f, charge_freq);
         }
 
         if(timeout_active && (get_absolute_time() > timeout_time) && armed) {
